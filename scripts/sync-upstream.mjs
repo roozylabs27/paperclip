@@ -42,7 +42,7 @@ export function syncUpstream(options = {}) {
   // 5. Verification build (optional)
   if (verifyBuild && !dryRun) {
     console.log("\nVerifying build integrity...");
-    run("pnpm turbo run build --filter=@paperclipai/adapter-antigravity-local...");
+    run("pnpm --filter @paperclipai/adapter-antigravity-local build");
   }
 
   console.log("\n✅ Sync complete. You can now run `git push origin roozy-main`.\n");
