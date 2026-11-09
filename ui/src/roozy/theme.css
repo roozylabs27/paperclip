@@ -1,0 +1,10 @@
+/* Roozylabs Theme Overrides */
+:root {
+  --roozy-brand-primary: #4f46e5;
+  --roozy-brand-accent: #6366f1;
+}
+
+[data-theme="dark"] {
+  --roozy-brand-primary: #6366f1;
+  --roozy-brand-accent: #818cf8;
+}
