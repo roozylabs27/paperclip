@@ -19,7 +19,10 @@ import { createServer } from "node:net";
 import { constants as osConstants } from "node:os";
 import { Agent as HttpAgent, createServer as createHttpServer, request as requestHttp, type IncomingMessage } from "node:http";
 import { Agent as HttpsAgent, request as requestHttps } from "node:https";
-import { getCACertificates } from "node:tls";
+import * as tls from "node:tls";
+const getCACertificates =
+  (tls as unknown as { getCACertificates?: (type: string) => string[] }).getCACertificates
+  ?? (() => tls.rootCertificates);
 import { pipeline } from "node:stream/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
