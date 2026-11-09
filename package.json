@@ -19,6 +19,7 @@
     "prototype:dot:live": "pnpm --filter @paperclipai/server exec tsx scripts/dot-runner-live.ts",
     "storybook": "pnpm --filter @paperclipai/ui storybook",
     "build-storybook": "pnpm --filter @paperclipai/ui build-storybook",
+    "sync:upstream": "node scripts/sync-upstream.mjs",
     "build": "pnpm run preflight:workspace-links && pnpm -r build",
     "build:feature-catalog": "node cli/node_modules/tsx/dist/cli.mjs scripts/generate-feature-catalog.ts",
     "typecheck": "pnpm run preflight:workspace-links && pnpm -r typecheck",
