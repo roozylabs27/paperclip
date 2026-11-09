@@ -286,6 +286,7 @@ import {
   assertCompanyAccess,
   getAccessibleResource,
   getActorInfo,
+  issueNotFoundBody,
 } from "./authz.js";
 import {
   assertNoAgentHostWorkspaceCommandMutation,
@@ -393,6 +394,7 @@ import {
   resolveIssueReviewRequester,
 } from "../services/issue-review-policy.js";
 import {
+  addressedHumanOnlyDenialMessage,
   evaluateIssueThreadInteractionResolverAudience,
   issueThreadInteractionAttentionAgentAllowed,
   type IssueThreadInteractionResolverAudienceDecision,
@@ -5227,7 +5229,7 @@ export function issueRoutes(
     req: Request,
     res: Response,
     issue: Parameters<typeof decideIssueAccess>[1] & { identifier?: string | null },
-    options: { allowBreakGlass?: boolean } = {},
+    options: { allowBreakGlass?: boolean; finalForAgents?: boolean } = {},
   ) {
     const decision = await decideIssueAccess(req, issue, "issue:read");
     if (decision.allowed) return true;
@@ -5240,7 +5242,9 @@ export function issueRoutes(
       await recordIssueBreakGlassRead(req, issue);
       return true;
     }
-    res.status(404).json({ error: "Issue not found" });
+    // Must match the missing-task body on the same route, or the 404 would
+    // reveal that a private task exists.
+    res.status(404).json(options.finalForAgents ? issueNotFoundBody(req) : { error: "Issue not found" });
     return false;
   }
 
@@ -6007,6 +6011,16 @@ export function issueRoutes(
     return false;
   }
 
+  /** The addressee's display name, so a denial relayed in chat can name who resolves the card. */
+  async function addresseeDisplayName(userId: string) {
+    try {
+      const [row] = await db.select({ name: authUsers.name }).from(authUsers).where(eq(authUsers.id, userId)).limit(1);
+      return typeof row?.name === "string" && row.name.trim() ? row.name.trim() : null;
+    } catch {
+      return null;
+    }
+  }
+
   function denyIssueThreadInteractionResolution(
     res: Response,
     input: {
@@ -6203,13 +6217,18 @@ export function issueRoutes(
             payload?.secretProposal !== undefined),
       });
     if (!decision.allowed) {
+      const addresseeUserId = decision.code === "interaction_human_only" && typeof decision.details?.addresseeUserId === "string"
+        ? decision.details.addresseeUserId
+        : null;
+      const addresseeName = addresseeUserId ? await addresseeDisplayName(addresseeUserId) : null;
       return denyIssueThreadInteractionResolution(res, {
         status: decision.status,
         code: decision.code,
-        message: decision.message,
+        message: addresseeName ? addressedHumanOnlyDenialMessage(addresseeName, decision.details?.askerIsNotAddressee === true) : decision.message,
         details: {
           effectiveResolverPolicy: decision.effectiveResolverPolicy,
           ...(decision.details ?? {}),
+          ...(addresseeName ? { addresseeName } : {}),
         },
       });
     }
@@ -9775,9 +9794,10 @@ export function issueRoutes(
       res,
       timing.time("lookup", () => getIssueById(req, id)),
       "Issue not found",
+      issueNotFoundBody(req),
     );
     if (!issue) return;
-    if (!(await timing.time("authorization", () => assertIssueReadAllowed(req, res, issue, { allowBreakGlass: true })))) return;
+    if (!(await timing.time("authorization", () => assertIssueReadAllowed(req, res, issue, { allowBreakGlass: true, finalForAgents: true })))) return;
     // Saved cards are structural conversation data. Include their local
     // projection before first paint, independently of slow recovery, workspace
     // and related-task enrichment. This never refreshes external providers.
