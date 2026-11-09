@@ -77,4 +77,13 @@ describe("ui adapter registry", () => {
       expect(getUIAdapter(type)).toBe(builtin);
     }
   });
+
+  it("registers antigravity_local as a built-in UI adapter", () => {
+    const adapter = getUIAdapter("antigravity_local");
+    expect(adapter).toBeDefined();
+    expect(adapter.type).toBe("antigravity_local");
+    expect(adapter.label).toBe("Google Antigravity CLI");
+    expect(findUIAdapter("antigravity_local")).toBe(adapter);
+    expect(listUIAdapters().some((a) => a.type === "antigravity_local")).toBe(true);
+  });
 });

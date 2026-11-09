@@ -14,6 +14,15 @@ import {
 import type { AdapterLoginCapability } from "@paperclipai/adapter-utils";
 import { runAdapterExecutionTargetShellCommand } from "@paperclipai/adapter-utils/execution-target";
 import {
+  execute as antigravityExecute,
+  testEnvironment as antigravityTestEnvironment,
+} from "@paperclipai/adapter-antigravity-local/server";
+import {
+  type as antigravityType,
+  models as antigravityModels,
+  agentConfigurationDoc as antigravityDoc,
+} from "@paperclipai/adapter-antigravity-local";
+import {
   execute as claudeExecute,
   listClaudeSkills,
   syncClaudeSkills,
@@ -1009,6 +1018,14 @@ const piLocalAdapter: ServerAdapterModule = {
   agentConfigurationDoc: piAgentConfigurationDoc,
 };
 
+const antigravityLocalAdapter: ServerAdapterModule = {
+  type: antigravityType,
+  execute: antigravityExecute,
+  testEnvironment: antigravityTestEnvironment,
+  models: antigravityModels,
+  agentConfigurationDoc: antigravityDoc,
+};
+
 const adaptersByType = new Map<string, ServerAdapterModule>();
 
 // For builtin types that are overridden by an external adapter, we keep the
@@ -1036,6 +1053,7 @@ function registerBuiltInAdapters() {
     hermesGatewayAdapter,
     hermesLocalAdapter,
     openclawGatewayAdapter,
+    antigravityLocalAdapter,
     processAdapter,
     httpAdapter,
   ]) {

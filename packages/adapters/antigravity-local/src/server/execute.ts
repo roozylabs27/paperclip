@@ -20,6 +20,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     timeoutSec: 3600,
     graceSec: 10,
     onLog: ctx.onLog ?? (async () => {}),
+    onSpawn: ctx.onSpawn,
   });
 
   const parsed = parseAntigravityOutput(result.stdout);
