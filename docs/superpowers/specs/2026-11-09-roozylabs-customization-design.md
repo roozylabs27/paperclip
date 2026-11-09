@@ -1,7 +1,7 @@
 # Roozylabs Fork Customization & Upstream Synchronization Architecture
 
 - **Project:** Paperclip Fork for Roozylabs
-- **Origin Repo:** `git@github.com:roozylabs27/paperclip.git`
+- **Origin Repo:** `git@github-roozylabs:roozylabs27/paperclip.git` (via SSH config `github-roozylabs`)
 - **Upstream Repo:** `https://github.com/paperclipai/paperclip.git`
 - **Date:** 2026-11-09
 - **Status:** Approved Design
@@ -36,7 +36,7 @@ To prevent merge conflict fatigue, branch responsibilities are strictly isolated
 ```
 
 ### Remote Definitions
-* **`origin`**: `git@github.com:roozylabs27/paperclip.git` (Roozylabs fork)
+* **`origin`**: `git@github-roozylabs:roozylabs27/paperclip.git` (Fork Roozylabs dengan SSH Host `github-roozylabs`)
 * **`upstream`**: `https://github.com/paperclipai/paperclip.git` (Official Paperclip repository)
 
 ### Branch Roles & Policies
