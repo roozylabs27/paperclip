@@ -22,7 +22,7 @@ describe("antigravity-local execute", () => {
     vi.clearAllMocks();
   });
 
-  it("forwards ctx.onSpawn to runChildProcess with -p flag and resolved model", async () => {
+  it("forwards ctx.onSpawn to runChildProcess with resolved model and pipes prompt via stdin", async () => {
     const onSpawn = vi.fn(async () => undefined);
     const onLog = vi.fn(async () => undefined);
 
@@ -55,8 +55,6 @@ describe("antigravity-local execute", () => {
     expect(callArgs[0]).toBe("agy-test-123");
     expect(callArgs[1]).toBe("agy");
     expect(callArgs[2]).toEqual([
-      "-p",
-      "Do something",
       "--model",
       "gemini-3.8-flash-medium",
       "--dangerously-skip-permissions",
@@ -64,9 +62,10 @@ describe("antigravity-local execute", () => {
 
     const opts = callArgs[3] as Record<string, unknown>;
     expect(opts.onSpawn).toBe(onSpawn);
+    expect(opts.stdin).toBe("Do something");
   });
 
-  it("appends extraArgs and respects custom model", async () => {
+  it("appends extraArgs, pipes prompt via stdin, and respects custom model", async () => {
     const ctx = {
       runId: "agy-test-456",
       agent: {
@@ -89,13 +88,13 @@ describe("antigravity-local execute", () => {
     const mockedRun = vi.mocked(serverUtils.runChildProcess);
     const callArgs = mockedRun.mock.calls[0];
     expect(callArgs[2]).toEqual([
-      "-p",
-      "Analyze this",
       "--model",
       "gemini-4-argon-high",
       "--dangerously-skip-permissions",
       "--effort",
       "high",
     ]);
+    const opts = callArgs[3] as Record<string, unknown>;
+    expect(opts.stdin).toBe("Analyze this");
   });
 });

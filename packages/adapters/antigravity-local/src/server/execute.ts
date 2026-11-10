@@ -70,13 +70,15 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
 
   const dangerouslySkipPermissions = asBoolean(config.dangerouslySkipPermissions, true);
 
-  const args: string[] = ["-p", prompt, "--model", model];
+  const args: string[] = ["--model", model];
   if (dangerouslySkipPermissions) {
     args.push("--dangerously-skip-permissions");
   }
   if (extraArgs.length > 0) {
     args.push(...extraArgs);
   }
+
+  const hasPromptInArgs = args.some((arg) => arg === "-p" || arg === "--print" || arg === "--prompt");
 
   const cwd = (ctx as { workspaceDir?: string }).workspaceDir || asString(config.cwd, "") || process.cwd();
 
@@ -87,6 +89,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     graceSec: 10,
     onLog: ctx.onLog ?? (async () => {}),
     onSpawn: ctx.onSpawn,
+    stdin: hasPromptInArgs ? undefined : prompt,
   });
 
   const parsed = parseAntigravityOutput(result.stdout);
