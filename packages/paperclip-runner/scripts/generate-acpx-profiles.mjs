@@ -121,7 +121,7 @@ for (const [path, content] of [
 ]) {
   const url = new URL(path, root);
   if (check) {
-    assert.equal(await readFile(url, "utf8"), content, `Stale ACPX profiles: ${fileURLToPath(url)}; run generate:acpx-profiles`);
+    assert.equal((await readFile(url, "utf8")).replace(/\r\n/g, "\n"), content.replace(/\r\n/g, "\n"), `Stale ACPX profiles: ${fileURLToPath(url)}; run generate:acpx-profiles`);
   } else await writeFile(url, content);
 }
 console.log("TypeScript/Rust ACPX profiles match the release manifest.");
