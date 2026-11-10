@@ -6,12 +6,14 @@ describe("antigravity-local adapter", () => {
     expect(type).toBe("antigravity_local");
     expect(label).toBe("Google Antigravity CLI");
     expect(models.length).toBeGreaterThan(0);
-    expect(models.map((m) => m.id)).toContain("gemini-2.5-pro");
+    expect(models.map((m) => m.id)).toContain("gemini-3.8-flash-medium");
   });
 
   it("resolves default model when unspecified", () => {
-    expect(resolveAntigravityModel("")).toBe("gemini-2.5-pro");
-    expect(resolveAntigravityModel(undefined)).toBe("gemini-2.5-pro");
-    expect(resolveAntigravityModel("gemini-2.5-flash")).toBe("gemini-2.5-flash");
+    expect(resolveAntigravityModel("")).toBe("gemini-3.8-flash-medium");
+    expect(resolveAntigravityModel(undefined)).toBe("gemini-3.8-flash-medium");
+    expect(resolveAntigravityModel("gemini-3.8-flash-high")).toBe("gemini-3.8-flash-high");
+    expect(resolveAntigravityModel("gemini-2.5-pro")).toBe("gemini-3.8-flash-medium");
+    expect(resolveAntigravityModel("gemini-3.8-flash")).toBe("gemini-3.8-flash-medium");
   });
 });

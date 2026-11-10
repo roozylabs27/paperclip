@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
