@@ -1,5 +1,5 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { controllerInstances, type Db } from "@paperclipai/db";
+import { controllerInstances, livenessDb, type Db } from "@paperclipai/db";
 import { logger } from "../middleware/logger.js";
 import {
   currentControllerBootId, currentProcessSpaceHash, onControllerStamp,
@@ -19,7 +19,7 @@ const STAMP_COMMIT_GRACE_MS = CONTROLLER_LEASE_TTL_MS;
 /** A settle of other work re-checks holdings at most this often. */
 const SETTLE_RECHECK_MIN_MS = 5_000;
 /** A renewal that has not answered within this bound counts as failed. */
-const RENEW_TIMEOUT_MS = 10_000;
+const RENEW_TIMEOUT_MS = 25_000;
 const RETRY_MS = 5_000;
 
 export type ControllerInstanceState = "live" | "grace" | "expired" | "fenced" | "stopped";
@@ -90,12 +90,13 @@ function holdsStampedWorkSql(bootId: string) {
  * Returns whether it still holds work, or that a newer boot fenced it.
  */
 function renewInDatabase(db: Db): (stampedRecently: boolean) => Promise<RenewResult> {
+  const pool = livenessDb(db);
   return async stampedRecently => {
     const bootId = currentControllerBootId();
     const records = holdsStampedWorkSql(bootId);
     const holds = sql`(${stampedRecently} or ${records})`;
     const expires = sql`now() + ${`${CONTROLLER_LEASE_TTL_MS} milliseconds`}::interval`;
-    const rows = await db.execute(sql`
+    const rows = await pool.execute(sql`
       insert into controller_instances (boot_id, process_space, pid, lease_expires_at)
       values (${bootId}, ${currentProcessSpaceHash()}, ${process.pid}, ${expires})
       on conflict (boot_id) do update set
@@ -222,7 +223,8 @@ export async function stopControllerInstanceLease(db: Db | null = registeredDb):
   if (current) { current.stopped = true; current.unsubscribe(); }
   state = null;
   if (!db || current?.epoch == null) return;
-  await db.update(controllerInstances).set({ stoppedAt: sql`now()` })
+  const pool = livenessDb(db);
+  await pool.update(controllerInstances).set({ stoppedAt: sql`now()` })
     .where(eq(controllerInstances.bootId, currentControllerBootId()))
     .catch(error => logger.warn({ err: error }, "controller instance stop record failed"));
 }
